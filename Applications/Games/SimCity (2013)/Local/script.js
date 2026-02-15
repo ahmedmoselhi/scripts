@@ -1,4 +1,5 @@
 const LocalInstallerScript = include("engines.wine.quick_script.local_installer_script");
+const { getLatestStagingVersion } = include("engines.wine.engine.versions");
 
 new LocalInstallerScript()
     .name("SimCity (2013)")
@@ -7,5 +8,5 @@ new LocalInstallerScript()
     .author("ZemoScripter")
     .category("Category")
     .executable("Origin.exe")
-    .wineVersion("3.19")
+    .wineVersion(getLatestStagingVersion)
     .wineDistribution("staging");

@@ -1,4 +1,5 @@
 const OriginScript = include("engines.wine.quick_script.origin_script");
+const { getLatestStagingVersion } = include("engines.wine.engine.versions");
 
 new OriginScript()
     .name("Spore")
@@ -6,6 +7,6 @@ new OriginScript()
     .author("Zemogiter")
     .applicationHomepage("http://www.spore.com/")
     .category("Games")
-    .wineVersion("3.19")
+    .wineVersion(getLatestStagingVersion)
     .wineDistribution("staging")
     .appId();
