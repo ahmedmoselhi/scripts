@@ -1,6 +1,7 @@
 const LocalInstallerScript = include("engines.wine.quick_script.local_installer_script");
 const Resource = include("utils.functions.net.resource");
 const { Extractor } = include("utils.functions.filesystem.extract");
+const { getLatestStableVersion } = include("engines.wine.engine.versions");
 
 const Amstream = include("engines.wine.verbs.amstream");
 const Quartz = include("engines.wine.verbs.quartz");
@@ -13,7 +14,7 @@ new LocalInstallerScript()
     .author("Zemogiter")
     .category("Games")
     .executable("LegoRR.exe")
-    .wineVersion("3.0.3")
+    .wineVersion(getLatestStableVersion)
     .wineDistribution("upstream")
     .preInstall((wine) => {
         const wizard = wine.wizard();

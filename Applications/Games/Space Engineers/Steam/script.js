@@ -1,4 +1,5 @@
 const SteamScript = include("engines.wine.quick_script.steam_script");
+const { getLatestStableVersion } = include("engines.wine.engine.versions");
 
 const DotNET472 = include("engines.wine.verbs.dotnet472");
 const Vcrun2017 = include("engines.wine.verbs.vcrun2017");
@@ -12,7 +13,7 @@ new SteamScript()
     .editor("Keen Software House")
     .author("Zemogiter")
     .appId("244850")
-    .wineVersion("4.14")
+    .wineVersion(getLatestStableVersion)
     .wineDistribution("upstream")
     .wineArchitecture("amd64")
     .preInstall((wine) => {

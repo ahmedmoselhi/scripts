@@ -1,4 +1,5 @@
 const OnlineInstallerScript = include("engines.wine.quick_script.online_installer_script");
+const { getLatestStagingVersion } = include("engines.wine.engine.versions");
 
 const Vcrun2015 = include("engines.wine.verbs.vcrun2015");
 const Corefonts = include("engines.wine.verbs.corefonts");
@@ -13,7 +14,7 @@ new OnlineInstallerScript()
     )
     .category("Games")
     .executable("Battle.net.exe")
-    .wineVersion("3.19")
+    .wineVersion(getLatestStagingVersion)
     .wineDistribution("staging")
     .preInstall((wine /*, wizard*/) => {
         new Vcrun2015(wine).go();
