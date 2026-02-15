@@ -213,16 +213,34 @@ module.getAvailableVersions = function (wizard) {
 }
 
 
-module.getLatestStableVersion = function (wizard /*, architecture*/) {
-    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.0(\.\d+)?$/);
+module.getLatestStableVersion = function (wizard, architecture) {
+    try {
+        return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.0(\.\d+)?$/);
+    } catch (error) {
+        print(`Could not fetch Wine stable version from WineHQ (${error}). Falling back to web service.`);
+
+        return getLatestVersion(wizard, "upstream-linux-" + architecture, /^\d+\.0(\.\d+)?$/);
+    }
 }
 
-module.getLatestDevelopmentVersion = function (wizard /*, architecture*/) {
-    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.\d+(\.\d+)?$/);
+module.getLatestDevelopmentVersion = function (wizard, architecture) {
+    try {
+        return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.\d+(\.\d+)?$/);
+    } catch (error) {
+        print(`Could not fetch Wine development version from WineHQ (${error}). Falling back to web service.`);
+
+        return getLatestVersion(wizard, "upstream-linux-" + architecture, /^\d+\.\d+(\.\d+)?$/);
+    }
 }
 
-module.getLatestStagingVersion = function (wizard /*, architecture*/) {
-    return getLatestVersionFromWineHq(wizard, `${WINEHQ_SOURCE_URL}wine-staging/`, "wine-staging", /^\d+\.\d+(\.\d+)?$/);
+module.getLatestStagingVersion = function (wizard, architecture) {
+    try {
+        return getLatestVersionFromWineHq(wizard, `${WINEHQ_SOURCE_URL}wine-staging/`, "wine-staging", /^\d+\.\d+(\.\d+)?$/);
+    } catch (error) {
+        print(`Could not fetch Wine staging version from WineHQ (${error}). Falling back to web service.`);
+
+        return getLatestVersion(wizard, "staging-linux-" + architecture, /^\d+\.\d+(\.\d+)?$/);
+    }
 }
 
 module.getLatestDosSupportVersion = function (/*wizard, architecture*/) {
