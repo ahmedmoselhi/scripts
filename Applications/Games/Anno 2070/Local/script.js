@@ -1,4 +1,5 @@
 const LocalInstallerScript = include("engines.wine.quick_script.local_installer_script");
+const { getLatestStableVersion } = include("engines.wine.engine.versions");
 
 const { touch, writeToFile, chmod } = include("utils.functions.filesystem.files");
 
@@ -16,7 +17,7 @@ new LocalInstallerScript()
     .author("Zemogiter")
     .category("Games")
     .executable("Anno5.exe")
-    .wineVersion("3.16")
+    .wineVersion(getLatestStableVersion)
     .wineDistribution("upstream")
     .preInstall((wine) => {
         new VirtualDesktop(wine).go();

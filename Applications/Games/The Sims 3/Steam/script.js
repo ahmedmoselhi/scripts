@@ -1,4 +1,5 @@
 const SteamScript = include("engines.wine.quick_script.steam_script");
+const { getLatestStableVersion } = include("engines.wine.engine.versions");
 
 const DotNET20 = include("engines.wine.verbs.dotnet20");
 const Vcrun2010 = include("engines.wine.verbs.vcrun2010");
@@ -11,7 +12,7 @@ new SteamScript()
     .applicationHomepage("http://www.thesims3.com/")
     .author("Zemogiter")
     .wineDistribution("upstream")
-    .wineVersion("4.0-rc2")
+    .wineVersion(getLatestStableVersion)
     .appId(47890)
     .preInstall((wine /*, wizard*/) => {
         new DotNET20(wine).go();
