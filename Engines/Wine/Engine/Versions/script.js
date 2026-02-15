@@ -47,51 +47,88 @@ function fetchRemoteFile(wizard, url, target) {
     return cat(target);
 }
 
-function getLatestMajorBranch(wizard, baseUrl, targetDirectory) {
+function getBranchSortKey(branchName) {
+    if (/^\d+\.x$/.test(branchName)) {
+        return [Number(branchName.slice(0, -2)), Number.MAX_SAFE_INTEGER];
+    }
+
+    const numericBranchMatch = branchName.match(/^(\d+)\.(\d+)$/);
+    if (numericBranchMatch) {
+        return [Number(numericBranchMatch[1]), Number(numericBranchMatch[2])];
+    }
+
+    return null;
+}
+
+function compareBranchNames(a, b) {
+    const aSortKey = getBranchSortKey(a);
+    const bSortKey = getBranchSortKey(b);
+
+    if (!aSortKey || !bSortKey) {
+        return a.localeCompare(b);
+    }
+
+    if (aSortKey[0] !== bSortKey[0]) {
+        return aSortKey[0] - bSortKey[0];
+    }
+
+    return aSortKey[1] - bSortKey[1];
+}
+
+function getAvailableBranches(wizard, baseUrl, targetDirectory) {
     const content = fetchRemoteFile(wizard, baseUrl, `${targetDirectory}/availableBranches.html`);
-    const branchRegex = /href="(\d+)\.x\//g;
+    const branchRegex = /href="([^/]+)\/"/g;
 
     const branches = [];
     let branchMatch;
+
     while ((branchMatch = branchRegex.exec(content)) !== null) {
-        branches.push(Number(branchMatch[1]));
+        const branch = branchMatch[1];
+
+        if (branch === ".." || !getBranchSortKey(branch)) {
+            continue;
+        }
+
+        if (branches.indexOf(branch) === -1) {
+            branches.push(branch);
+        }
     }
 
     if (branches.length === 0) {
         throw new Error(`Could not read any Wine branch from ${baseUrl}`);
     }
 
-    return branches.sort((a, b) => a - b)[branches.length - 1];
+    return branches.sort(compareBranchNames);
 }
 
 function getLatestVersionFromWineHq(wizard, rootDirectory, archivePrefix, versionRegex) {
-    const latestMajorBranch = getLatestMajorBranch(wizard, rootDirectory, propertyReader.getProperty("application.user.engines") + "/wine");
-    const branchUrl = `${rootDirectory}${latestMajorBranch}.x/`;
-    const branchContent = fetchRemoteFile(
-        wizard,
-        branchUrl,
-        propertyReader.getProperty("application.user.engines") + "/wine/availableVersions.html"
-    );
-
+    const targetDirectory = propertyReader.getProperty("application.user.engines") + "/wine";
+    const availableBranches = getAvailableBranches(wizard, rootDirectory, targetDirectory);
     const archiveRegex = new RegExp(`href=\"${archivePrefix}-(\\d+\\.\\d+(?:\\.\\d+)?(?:-rc\\d+)?)\\.tar\\.(?:xz|bz2|gz)\"`, "g");
-    const versions = [];
 
-    let archiveMatch;
-    while ((archiveMatch = archiveRegex.exec(branchContent)) !== null) {
-        const foundVersion = archiveMatch[1];
+    for (let i = availableBranches.length - 1; i >= 0; i--) {
+        const branch = availableBranches[i];
+        const branchUrl = `${rootDirectory}${branch}/`;
+        const branchContent = fetchRemoteFile(wizard, branchUrl, `${targetDirectory}/availableVersions-${branch}.html`);
+        const versions = [];
 
-        if (versionRegex.test(foundVersion) && versions.indexOf(foundVersion) === -1) {
-            versions.push(foundVersion);
+        let archiveMatch;
+        while ((archiveMatch = archiveRegex.exec(branchContent)) !== null) {
+            const foundVersion = archiveMatch[1];
+
+            if (versionRegex.test(foundVersion) && versions.indexOf(foundVersion) === -1) {
+                versions.push(foundVersion);
+            }
+        }
+
+        if (versions.length > 0) {
+            versions.sort(compareWineVersions);
+
+            return versions[versions.length - 1];
         }
     }
 
-    if (versions.length === 0) {
-        throw new Error(`Could not read any ${archivePrefix} version from ${branchUrl}`);
-    }
-
-    versions.sort(compareWineVersions);
-
-    return versions[versions.length - 1];
+    throw new Error(`Could not read any ${archivePrefix} version from ${rootDirectory}`);
 }
 
 /**
@@ -214,11 +251,11 @@ module.getAvailableVersions = function (wizard) {
 
 
 module.getLatestStableVersion = function (wizard, architecture) {
-    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.0(\.\d+)?$/);
+    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.(?:[02468]|\d*[02468])(?:\.\d+)?$/);
 }
 
 module.getLatestDevelopmentVersion = function (wizard, architecture) {
-    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.\d+(\.\d+)?$/);
+    return getLatestVersionFromWineHq(wizard, WINEHQ_SOURCE_URL, "wine", /^\d+\.(?:[13579]|\d*[13579])(?:\.\d+)?(?:-rc\d+)?$/);
 }
 
 module.getLatestStagingVersion = function (wizard, architecture) {
